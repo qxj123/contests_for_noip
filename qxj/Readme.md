@@ -23,5 +23,6 @@
 |contest12|A|A|A|A|Y|Y|Y
 |contest13|A|A|A|A|Y|Y|W
 |contest14|A|A|A|Y|Y|/|/
+|contest15|A|A|Y|Y|Y|/|/
 
 PS：标号按一定顺序。
