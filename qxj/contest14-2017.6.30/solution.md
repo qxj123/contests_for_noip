@@ -7,80 +7,56 @@
 ## Div2. A
 
 ### Problem Description
-> ZS在打字，他打了 n (n <= 10<sup>5</sup>)个字符，给你打每个字符的时间，若在打第 i 个字符的时刻 t<sub>i</sub>，若前一个字符的输入时间 t<sub>i-1</sub> < t<sub>i</sub> - c (c 是给定的最大时限，c <= 10<sup>9</sup>)，那么之前的输入的字符都会消失，问你当他打完第 n 个字符后，屏幕上有几个字符。 
+> ZS在打字，他打了 n (n <= 10<sup>5</sup>)个字符，给你打每个字符的时间，若在打第 i 个字符的时刻 t<sub>i</sub>，若前一个字符的输入时间 t<sub>i-1</sub> < t<sub>i</sub> - c (c 是给定的最大时限，c ≤ 10<sup>9</sup>)，那么之前的输入的字符都会消失，问你当他打完第 n 个字符后，屏幕上有几个字符。 
+
+> Time Limit: 2000 ms  Memory Limit：262144 kB
 
 ### Solution
-> 直接模拟，计数器 cnt 表示现在屏幕上有多少个字符，当 t<sub>i-1</sub> < t<sub>i</sub> - c 时，cnt 清零。++cnt。最后 cnt 即为答案。时间复杂度 O(n)。
+> 直接模拟，计数器 cnt 表示现在屏幕上有多少个字符，当 t<sub>i-1</sub> < t<sub>i</sub> - c 时，cnt 清零。第 i 个字符输入屏幕，++cnt。最后 cnt 即为答案。时间复杂度 O(n)。
 
 ```cpp
-#include <iostream>
-#include <cstdio>
-#include <cstring>
-using namespace std;
-const int maxn = 100000;
-int n, c, last = 0, cnt = 0;
-int main() {
-    scanf("%d%d", &n, &c);
-    for (int i = 1, t; i <= n; ++i) {
-        scanf("%d", &t);
-        if (t - last > c) cnt = 0;
-        ++cnt;
-        last = t;
-    }
-    printf("%d\n", cnt);
-    return 0;
+for (int i = 1; i <= n; ++i) {
+    if (t[i] - last > c) cnt = 0;
+    ++cnt;
+    last = t[i];
 }
 ```
 
 ## Div2. B
 
 ### Problem Description
-> 
+> 给你一个字符串 s (1 ≤ |s| ≤ 50000)，它由大写字母（'A' - 'Z'）和 '?' 组成，你要将 '?' 填成大写字母（'A' - 'Z'），使得它存在一个长度为26的含有所有大写字母（'A' - 'Z'）的子串，输出任意一种符合条件的字符串。
+
+> Time Limit: 2000 ms  Memory Limit：262144 kB
 
 ### Solution
-> 
+> 枚举 s 的每一个长度为26的子串，判断它填完 '?' 后是否可以含有所有大写字母（'A' - 'Z'），当且仅当不存在的大写字符数等于 '?' 的数量。只要找到这样一个子串，把它填满，s 中的其他 '?' 就可以随便填。时间复杂度 O(26 * |s|)。代码如下。
+
+> 可以不用枚举，用 two pointers，维护一下不存在的大写字符数和 '?' 的数量。时间复杂度 O(|s|)。
 
 ```cpp
-#include <iostream>
-#include <cstdio>
-#include <cstring>
-using namespace std;
-const int maxn = 50000;
-int n, cnt;
-char s[maxn + 10];
-bool p[26], flag = 0;
-int k, t[26];
-int main() {
-    scanf("%s", s + 1);
-    n = strlen(s + 1);
-    if (n < 26) {
-        puts("-1");
-        return 0;
-    }
-    for (int i = 1; i + 25 <= n; ++i) {
-        if (flag) continue;
-        memset(p, 0, sizeof(p));
-        cnt = 0;
-        for (int j = i; j <= i + 25; ++j)
-            if (s[j] == '?') ++cnt;
-            else p[s[j] - 65] = 1;
-        k = 0;
-        for (int j = 0; j < 26; ++j)
-            if (!p[j]) t[k++] = j;
-        if (k > cnt) continue;
-        else {
-            flag = 1;
-            for (int j = i, l = 0; j <= i + 25; ++j)
-                if (s[j] == '?') s[j] = t[l++] + 65;
-        }
-    }
-    if (!flag) puts("-1");
+for (int i = 1; i + 25 <= n; ++i) {
+    if (flag) continue;
+    memset(p, 0, sizeof(p));
+    cnt = 0;
+    for (int j = i; j <= i + 25; ++j)
+        if (s[j] == '?') ++cnt;
+        else p[s[j] - 65] = 1;
+    k = 0;
+    for (int j = 0; j < 26; ++j)
+        if (!p[j]) t[k++] = j;
+    if (k > cnt) continue;
     else {
-        for (int i = 1; i <= n; ++i)
-            if (s[i] == '?') putchar('A');
-            else putchar(s[i]);
+        flag = 1;
+        for (int j = i, l = 0; j <= i + 25; ++j)
+            if (s[j] == '?') s[j] = t[l++] + 65;
     }
-    return 0;
+} 
+if (!flag) puts("-1");
+else {
+    for (int i = 1; i <= n; ++i)
+        if (s[i] == '?') putchar('A');
+        else putchar(s[i]);
 }
 ```
 
@@ -93,20 +69,9 @@ int main() {
 > 
 
 ```cpp
-#include <iostream>
-#include <cstdio>
-#include <cstring>
-using namespace std;
-typedef long long LL;
-int n;
-int last = 2;
-int main() {
-    scanf("%d", &n);
-    for (int i = 1; i <= n; ++i) {
-        printf("%lld\n", LL(i + 1) * (i + 1) * i - last);
-        last = i;
-    }
-    return 0;
+for (int i = 1, last = 2; i <= n; ++i) {
+    printf("%lld\n", LL(i + 1) * (i + 1) * i - last);
+    last = i;
 }
 ```
 
