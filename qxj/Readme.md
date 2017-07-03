@@ -2,7 +2,7 @@
 
 > * Y : solved in the contest
 > * A : solved after contest
-> * W : solving
+> * W : unsolved
 > * D : debugging
 > * / : nothing
 
