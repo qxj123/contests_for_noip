@@ -112,12 +112,12 @@ for (int i = 0; i < 2; putchar('\n'), ++i)
 ## Div2. D
 
 ### Problem Description
-> 给你点数 n，加边方式 q 和源点 s (1 ≤ n, q ≤ 10<sup>5</sup>, 1 ≤ s ≤ n)。有3种加边方式，1 u v w：点 u 到点 v 的边权为 w 的边；2 u l r w：点 u 到点 v ∈ [l, r] 的边权为 w 的边；2 u l r w：点 v ∈ [l, r] 到点 u 的边权为 w 的边。求源点 s 到每个点的最短路径。
+> 给你一个有向图的点数 n，所有加边方式的数量 q 和源点 s (1 ≤ n, q ≤ 10<sup>5</sup>, 1 ≤ s ≤ n)。有3种加边方式，1 u v w：点 u 到点 v 的边权为 w 的边；2 u l r w：点 u 到点 v ∈ [l, r] 的边权为 w 的边；2 u l r w：点 v ∈ [l, r] 到点 u 的边权为 w 的边 (1 ≤ w ≤ 10<sup>9</sup>)。求源点 s 到每个点的最短路径。
 
 > Time Limit: 2000 ms  Memory Limit：262144 kB
 
 ### Solution
-> 时间复杂度O(nlog<sup>2</sup>n)。
+> 我们以图中的点为下表建两棵线段树，一棵都是父节点连向子节点权为0的边，一棵都是子节点连向父节点权为0的边。我们对于第一种加边方式直接加边；第二种：将点 u 连向在第一棵线段树上可以覆盖 [l, r] 的线段树节点，边权为 w（点 u 可以通过这些线段树节点一直向下，到达 [l, r] 上的点，代价为 w）；第三种：将在第二棵线段树上可以覆盖 [l, r] 的线段树节点连向点 u，边权为 w（ [l, r] 上的点可以一直向上，通过这些线段树节点，到达点 u ，代价为 w）。建以后有O(n)个点，O(nlog<sub>2</sub>n)条边，跑一个Dijkstra + 堆优化或 set 优化，时间复杂度O(nlog<sup>2</sup>n)。我是用SPFA，这个复杂度O(knlog<sub>2</sub>n)（SPFA复杂度到底是多少我也不知道）。
 
 ```cpp
 #include <iostream>
@@ -225,13 +225,187 @@ int main() {
 ## Div2. E
 
 ### Problem Description
-> 
+> 有一个长度为 n (1 ≤ n ≤ 10<sup>5</sup>) 的序列 a<sub>1</sub>, a<sub>2</sub>, ..., a<sub>n</sub> (1 ≤ a<sub>i</sub> ≤ n)。每个 a<sub>i</sub> 代表一种颜色，询问当每段内的最大颜色种类为 k (k 从 1 到 n)，原序列最少分成几段。
 
 > Time Limit: 2000 ms  Memory Limit：262144 kB
 
 ### Solution
-> 
+> 首先我们可以贪心，每次选择最长的颜色种类为 k （或者分完了）的段。我们知道这至少可以选择长度为 k 的段，所以计算 k = 1 - n 的段的总数量为 O(n / 1 + n / 2 + ... + n / n) = O(n * (1 + 1 / 2 + ... + 1 / n)) = O(nlog<sub>2</sub>n)。当前位置为 i，从 i 到 n，如果 a<sub>j</sub>(i ≤ j ≤ n)，是第一次出现的某种颜色，贡献为 1，否则为 0。
+
+> 1) 我们考录建主席树，第 i 个版本为原序列 i - n 的数在相应位置上的贡献。第 i 个版本是从第 i + 1 个版本在第 i 个位置的贡献 + 1，若存在 a<sub>j</sub> = a<sub>i</sub>(i ≤ j ≤ n，j 是满足前面条件的最小的位置)，将第 j 个位置的贡献 - 1 (第 i + 1 个版本此位置的贡献为 1，现将其删除)。查询的话只要在线段树上二分 O(log<sub>2</sub>n)。主席树总时间复杂度为 O(nlog<sup>2</sup>n)。
+
+> 2) 我们也可以用树状数组做，每个位置开一个vector，存此时位于这里的 k。最初先算出整个序列的所有贡献，此时计算在第 i (1 ≤ i ≤ n)位置个位置上的询问，这些询问的答案 + 1，将它们向后放到相应的位置的vector里，此时 i 的位置的贡献 - 1，若存在 a<sub>j</sub> = a<sub>i</sub>(i ≤ j ≤ n，j 是满足前面条件的最小的位置)，将第 j 个位置的贡献 + 1。树状数组总时间复杂度为 O(nlog<sub>2</sub>n)。
+
+> 还有一个复杂度爆炸但是能跑过去的算法。我们知道最后答案的序列的数字的种数为 O(n<sup>0.5</sup>)（前n<sup>1.5</sup>的个数为O(n<sup>1.5</sup>)，后面的个数是小于n<sup>1.5</sup>的），二分答案相同的位置，将这些询问全部赋成相同的值。时间复杂度为 O(n<sup>1.5</sup>log<sup>2</sup>n)。
+
+#### 主席树 O(nlog<sup>2</sup>n)
 
 ```cpp
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+using namespace std;
+const int maxn = 100000;
+int n;
+int a[maxn + 1];
+int root[maxn + 2], last[maxn + 1];
+int tot = 0;
+struct node {
+    int lc, rc, l, r, sum;
+} p[maxn << 6];
+int Build(int l, int r) {
+    int k = ++tot;
+    p[k].l = l;
+    p[k].r = r;
+    p[k].sum = 0;
+    if (l == r) return k;
+    p[k].lc = Build(l, (l + r) >> 1);
+    p[k].rc = Build(((l + r) >> 1) + 1, r);
+    return k;
+}
+int Insert(int k, int x, int d) {
+    int K = ++tot;
+    p[K].l = p[k].l;
+    p[K].r = p[k].r;
+    if (p[k].l == x && x == p[k].r) {
+        p[K].sum = p[k].sum + d;
+        return K;
+    }
+    if (x <= p[p[k].lc].r) {
+        p[K].lc = Insert(p[k].lc, x, d);
+        p[K].rc = p[k].rc;
+    } else {
+        p[K].lc = p[k].lc;
+        p[K].rc = Insert(p[k].rc, x, d);
+    }
+    p[K].sum = p[p[K].lc].sum + p[p[K].rc].sum;
+    return K;
+}
+int Query(int k, int K) {
+    if (p[k].l == p[k].r) return p[k].l;
+    if (K <= p[p[k].lc].sum) return Query(p[k].lc, K);
+    return Query(p[k].rc, K - p[p[k].lc].sum);
+}
+int main() {
+    scanf("%d", &n);
+    for (int i = 1; i <= n; ++i)
+        scanf("%d", &a[i]);
+    root[n + 1] = Build(1, n);
+    for (int i = n; i; --i) {
+        root[i] = root[i + 1];
+        if (last[a[i]]) root[i] = Insert(root[i], last[a[i]], -1);
+        root[i] = Insert(root[i], last[a[i]] = i, 1);
+    }
+    for (int i = 1; i <= n; ++i) {
+        int cnt = 1;
+        for (int j = 1; p[root[j]].sum > i; ++cnt, j = Query(root[j], i + 1));
+        printf("%d ", cnt);
+    }
+    return 0;
+}
+```
 
+#### 树状数组 O(nlog<sup>2</sup>n)
+
+```cpp
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <vector>
+using namespace std;
+const int maxn = 100000;
+int n;
+int a[maxn + 1], head[maxn + 1], Next[maxn + 1];
+int c[maxn + 1], ans[maxn + 1];
+vector<int> v[maxn + 2];
+inline int lowbit(int x) {
+    return (x) & (-x);
+}
+inline void Add(int x, int k) {
+    for (; x <= n; x += lowbit(x))
+        c[x] += k;
+    return;
+}
+inline int Query(int k) {
+    int x = 0;
+    for (int i = 16; i >= 0; --i)
+        if (x + (1 << i) <= n && c[x + (1 << i)] <= k)
+            k -= c[x += 1 << i];
+    return x + 1;
+}
+int main() {
+    scanf("%d", &n);
+    for (int i = 1; i <= n; ++i)
+        scanf("%d", &a[i]);
+    for (int i = 1; i <= n; ++i)
+        head[i] = Next[i] = n + 1;
+    for (int i = n; i; --i) {
+        Next[i] = head[a[i]];
+        head[a[i]] = i;
+    }
+    for (int i = 1; i <= n; ++i)
+        if (head[i] <= n) Add(head[i], 1);
+    for (int i = 1; i <= n; ++i)
+        v[1].push_back(i);
+    for (int i = 1; i <= n; ++i) {
+        for (int j = 0, t = v[i].size(); j < t; ++j) {
+            int k = v[i][j];
+            v[Query(k)].push_back(k);
+            ++ans[k];
+        }
+        Add(i, -1);
+        Add(Next[i], 1);
+    }
+    for (int i = 1; i <= n; ++i)
+        printf("%d ", ans[i]);
+    return 0;
+}
+```
+
+#### 二分 O(n<sup>1.5</sup>log<sub>2</sub>n)
+
+```cpp
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+using namespace std;
+const int maxn = 100000;
+int n;
+int a[maxn + 1], last[maxn + 1], ans[maxn + 1];
+int calc(int k) {
+    int cnt = 0, tot = k;
+    memset(last, -1, sizeof(last));
+    for (int i = 1; i <= n; ++i)
+        if (last[a[i]] != cnt) {
+            ++tot;
+            if (tot > k) {
+                ++cnt;
+                tot = 1;
+            }
+            last[a[i]] = cnt;
+        }
+    return cnt;
+}
+void Divide(int l, int r) {
+    ans[l] = calc(l);
+    ans[r] = calc(r);
+    if (ans[l] == ans[r]) {
+        for (int i = l + 1; i < r; ++i)
+            ans[i] = ans[l];
+        return;
+    }
+    int mid = (l + r) >> 1;
+    if (l + 1 <= mid) Divide(l + 1, mid);
+    if (mid + 1 <= r - 1) Divide(mid + 1, r - 1);
+    return;
+}
+int main() {
+    scanf("%d", &n);
+    for (int i = 1; i <= n; ++i)
+        scanf("%d", &a[i]);
+    Divide(1, n);
+    for (int i = 1; i <= n; ++i)
+        printf("%d ", ans[i]);
+    return 0;
+}
 ```
