@@ -11,6 +11,8 @@
 ### Problem Description
 > 给你一个杠杆（用一个字符串 s 表示，3 ≤ |s| ≤ 10<sup>6</sup>），包括支点位置，每个重物的位置和重量，求这个杠杆的状态（左倾，右倾或平衡）。
 
+> Time Limit: 1000 ms  Memory Limit：262144 kB
+
 ### Solution
 > 设 k 为支点位置，Lsum = ∑(k - i) * wi (i < k)，Lsum = ∑(i - k) * wi (i > k)，当 Lsum > Rsum 左倾，当 Lsum < Rsum 右倾，当 Lsum = Rsum 时平衡。
 
